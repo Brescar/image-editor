@@ -1,0 +1,28 @@
+#canvasVisibleContent, #canvasSelectRegion {
+    position: fixed; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    max-width:100%; 
+    width:auto; 
+    max-height: 600px;
+    height: auto; 
+}
+
+#divButtons{
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(200,200,200,0.8);
+    padding: 10px;
+}
+
+#divFileBrowser{
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(200,200,200,0.8);
+    padding: 10px;
+}

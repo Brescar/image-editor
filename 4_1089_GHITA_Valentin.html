@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="4_1089_GHITA_Valentin.css">
+    <title>Photo editor - 4_1089_GHITA_Valentin</title>
+</head>
+<body>
+    <canvas id="canvasVisibleContent">
+        This browser does not support the canvas element.
+    </canvas>
+
+    <div id="divFileBrowser">
+        <input id="fileBrowser" type="file">
+    </div>
+
+    <div id="divButtons">
+        <button data-effect="normal">Normal</button>
+        <button data-effect="select" id="selectButton">Select</button>
+        <button data-effect="testing">Testing purposes</button>
+
+        <button id="buttonSave">Save</button>
+    </div>
+
+    <script src="4_1089_GHITA_Valentin.js"></script>
+    <script>
+        'use strict';
+        ImageEditor.initializeFunctionality();
+    </script>
+</body>
+</html>
