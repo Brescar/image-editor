@@ -45,6 +45,16 @@ class ImageEditor {
     #marginsSelection;
 
     /**
+     * @type {object}
+     */
+    #mouseCoordinates;
+
+    /**
+     * @type {boolean}
+     */
+    #isDragging = false;
+
+    /**
      * Returns a new ImageEditor object
      * @param {HTMLCanvasElement} canvasVisibleContent 
      * 
@@ -144,7 +154,8 @@ class ImageEditor {
         selectButton.innerHTML = 'Deselect';
         selectButton.setAttribute("data-effect", "deselect");
 
-        this.#setAndDrawSelectedRegion();
+        this.#setSelectedRegion();
+        this.#drawSelectedRegion();
         this.#createMarginsForResizing();
     }
 
@@ -153,14 +164,16 @@ class ImageEditor {
      * 
      * @returns {void}
      */
-    #setAndDrawSelectedRegion() {
+    #setSelectedRegion() {
         this.#selectRegion = {
             startX: 0,
             endX: this.#canvasSelectRegion.width,
             startY: 0,
             endY: this.#canvasSelectRegion.height,
         };
+    }
 
+    #drawSelectedRegion() {
         const width = this.#selectRegion.endX - this.#selectRegion.startX;
         const height = this.#selectRegion.endY - this.#selectRegion.startY; 
     
@@ -208,6 +221,91 @@ class ImageEditor {
             this.#marginsSelection[i].context.fillRect(0, 0, 
                 this.#marginsSelection[i].canvas.width, this.#marginsSelection[i].canvas.width);
         }
+
+        this.#addCornersFunctionality();
+    }
+
+    /**
+     * Part of the #createMarginsForResizing() method which is itself part of the #select() method.
+     * Sets the event listeners on the corners.
+     * 
+     * @returns {void}
+     */
+    #addCornersFunctionality() {
+        for(let i=0; i<4; i++) {
+            this.#marginsSelection[i].canvas.addEventListener('mousedown', (eventObject) => {
+                this.#clickCornerSelection(eventObject);
+            });
+            this.#marginsSelection[i].canvas.addEventListener('mousemove', (eventObject) => {
+                this.#dragCornerSelection(eventObject, i);
+            });
+        }
+    }
+
+    /**
+     * Sets the mouse coordinates and isDraging to true when left click is pressed on a corner.
+     * 
+     * @param {MouseEvent} eventObject
+     * @param {HTMLCanvasElement} canvasMargin0
+     * 
+     * @returns {void}
+     */
+    #clickCornerSelection(eventObject) {
+        if (eventObject.button !== 0)
+            return;
+        this.#mouseCoordinates = {
+            initialX: eventObject.clientX,
+            initialY: eventObject.clientY,
+            currentX: eventObject.clientX,
+            currentY: eventObject.clientY
+        };
+
+        this.#isDragging = true;
+    }
+
+    /**
+     * Calls the right method for the corner that is being dragged.
+     * 
+     * @param {MouseEvent} eventObject 
+     * @param {number} i 
+     * 
+     * @returns {void}
+     */
+    #dragCornerSelection(eventObject, i) {
+        if (!this.#isDragging)
+            return;
+        switch(i) {
+            case 0:
+                this.#dragTopLeft(eventObject);
+                break;
+            case 1:
+                this.#dragTopRight(eventObject);
+                break;
+            case 2:
+                this.#dragBottomLeft(eventObject);
+                break;
+            case 3:
+                this.#dragBottomRight(eventObject);
+                break;
+            default:
+                console.error("Corner not found");
+                break;
+        }
+    }
+
+    /**
+     * Resizes the region based on the mouse movement.
+     * 
+     * @param {MouseEvent} eventObject 
+     * 
+     * @returns {void}
+     */
+    #dragTopLeft(eventObject) {
+        this.#selectRegion.startX += eventObject.clientX - this.#mouseCoordinates.currentX;
+        this.#selectRegion.startY += eventObject.clientY - this.#mouseCoordinates.currentY;
+        this.#mouseCoordinates.currentX = eventObject.clientX;
+        this.#mouseCoordinates.currentY = eventObject.clientY;
+        this.#drawSelectedRegion();
     }
 
     /**
@@ -316,7 +414,10 @@ class ImageEditor {
                 document.body.removeChild(imageEditor.#marginsSelection[i].canvas);
             }
             imageEditor.#createMarginsForResizing();
-            console.log('Window resized!');
+        });
+
+        document.addEventListener('mouseup', function () {
+            imageEditor.#isDragging = false;
         });
     }
 }
