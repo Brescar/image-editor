@@ -310,5 +310,13 @@ class ImageEditor {
                 reader.readAsDataURL(files[0]);
             }
         });
+
+        window.addEventListener('resize', function() {
+            for (let i=0; i<imageEditor.#marginsSelection.length; i++) {
+                document.body.removeChild(imageEditor.#marginsSelection[i].canvas);
+            }
+            imageEditor.#createMarginsForResizing();
+            console.log('Window resized!');
+        });
     }
 }
