@@ -185,8 +185,8 @@ class ImageEditor {
         this.#canvasSelectRegionContext.strokeStyle = 'crimson';
         this.#canvasSelectRegionContext.lineWidth = 10;
 
-        this.#canvasSelectRegionContext.strokeRect(this.#selectRegion.startX, 
-            this.#selectRegion.startY, width, height);
+        this.#canvasSelectRegionContext.strokeRect(this.#selectRegion.startX + 5, 
+            this.#selectRegion.startY + 5, width - 10, height - 10);
     }
 
     /**
@@ -312,27 +312,36 @@ class ImageEditor {
         if (this.#mouseCoordinates.currentX > this.#mouseCoordinates.initialX &&
             this.#mouseCoordinates.currentY > this.#mouseCoordinates.initialY) {
 
-            this.#canvasSelectRegionContext.clearRect(this.#selectRegion.startX, this.#selectRegion.startY, 
-                this.#selectRegion.endX - this.#selectRegion.startX, this.#selectRegion.endY - this.#selectRegion.startY);
-    
             const rect = this.#canvasSelectRegion.getBoundingClientRect();
-
-            this.#selectRegion.startX += this.#mouseCoordinates.currentX - rect.left;
-            this.#selectRegion.startY += this.#mouseCoordinates.currentY - rect.top;
-
-            this.#drawSelectedRegion();
 
             const canvasMargin0 = document.getElementById("canvasMargin0");
             const canvasMargin1 = document.getElementById("canvasMargin1");
             const canvasMargin2 = document.getElementById("canvasMargin2");
-            const canvasMargin3 = document.getElementById("canvasMargin3");
 
-            canvasMargin0.style.top = rect.top + this.#mouseCoordinates.currentY - rect.top;
-            canvasMargin0.style.left = rect.left + this.#mouseCoordinates.currentX - rect.left;
+            canvasMargin0.style.top = (rect.top + this.#mouseCoordinates.currentY - rect.top) + 'px';
+            canvasMargin0.style.left = (rect.left + this.#mouseCoordinates.currentX - rect.left) + 'px';
 
-            canvasMargin1.style.top = rect.top + this.#mouseCoordinates.currentY - rect.top;
+            canvasMargin1.style.top = (rect.top + this.#mouseCoordinates.currentY - rect.top) + 'px';
 
-            canvasMargin2.style.left = rect.left + this.#mouseCoordinates.currentX - rect.left;
+            canvasMargin2.style.left = (rect.left + this.#mouseCoordinates.currentX - rect.left) + 'px';
+
+            this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
+                this.#canvasSelectRegion.height);
+
+            let shownWidth = rect.right - rect.left;
+            let shownHeight = rect.bottom - rect.top;
+    
+            this.#selectRegion.startX = (this.#mouseCoordinates.currentX - rect.left) * this.#canvasSelectRegion.width / shownWidth;
+            this.#selectRegion.startY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+
+            // console.clear();
+            // console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
+            // console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
+            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
+            // console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
+            // console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
+
+            this.#drawSelectedRegion();
         }
     }
 
@@ -347,10 +356,8 @@ class ImageEditor {
         selectButton.innerHTML = 'Select';
         selectButton.setAttribute("data-effect", "select");
 
-        const width = this.#selectRegion.endX - this.#selectRegion.startX;
-        const height = this.#selectRegion.endY - this.#selectRegion.startY; 
-
-        this.#canvasSelectRegionContext.clearRect(0, 0, width, height);
+        this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
+            this.#canvasSelectRegion.height);
 
         for (let i=0; i<this.#marginsSelection.length; i++) {
             document.body.removeChild(this.#marginsSelection[i].canvas);
