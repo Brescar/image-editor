@@ -283,18 +283,18 @@ class ImageEditor {
             case 0:
                 this.#dragTopLeft(eventObject);
                 break;
-            // case 1:
-            //     this.#dragTopRight(eventObject);
-            //     break;
-            // case 2:
-            //     this.#dragBottomLeft(eventObject);
-            //     break;
-            // case 3:
-            //     this.#dragBottomRight(eventObject);
-            //     break;
-            // default:
-            //     console.error("Corner not found");
-            //     break;
+            case 1:
+                this.#dragTopRight(eventObject);
+                break;
+            case 2:
+                this.#dragBottomLeft(eventObject);
+                break;
+            case 3:
+                this.#dragBottomRight(eventObject);
+                break;
+            default:
+                console.error("Corner not found");
+                break;
         }
     }
 
@@ -306,24 +306,24 @@ class ImageEditor {
      * @returns {void}
      */
     #dragTopLeft(eventObject) {
+        const rect = this.#canvasSelectRegion.getBoundingClientRect();
+
+        const canvasMargin0 = document.getElementById("canvasMargin0");
+        const canvasMargin1 = document.getElementById("canvasMargin1");
+        const canvasMargin2 = document.getElementById("canvasMargin2");
+
         this.#mouseCoordinates.currentX = eventObject.clientX;
         this.#mouseCoordinates.currentY = eventObject.clientY;
 
-        if (this.#mouseCoordinates.currentX > this.#mouseCoordinates.initialX &&
-            this.#mouseCoordinates.currentY > this.#mouseCoordinates.initialY) {
+        if (this.#mouseCoordinates.currentX > rect.left && this.#mouseCoordinates.currentX < rect.right
+            && this.#mouseCoordinates.currentY > rect.top && this.#mouseCoordinates.currentY < rect.bottom) { 
 
-            const rect = this.#canvasSelectRegion.getBoundingClientRect();
+            canvasMargin0.style.top = this.#mouseCoordinates.currentY + 'px';
+            canvasMargin0.style.left = this.#mouseCoordinates.currentX + 'px';
 
-            const canvasMargin0 = document.getElementById("canvasMargin0");
-            const canvasMargin1 = document.getElementById("canvasMargin1");
-            const canvasMargin2 = document.getElementById("canvasMargin2");
+            canvasMargin1.style.top = this.#mouseCoordinates.currentY + 'px';
 
-            canvasMargin0.style.top = (rect.top + this.#mouseCoordinates.currentY - rect.top) + 'px';
-            canvasMargin0.style.left = (rect.left + this.#mouseCoordinates.currentX - rect.left) + 'px';
-
-            canvasMargin1.style.top = (rect.top + this.#mouseCoordinates.currentY - rect.top) + 'px';
-
-            canvasMargin2.style.left = (rect.left + this.#mouseCoordinates.currentX - rect.left) + 'px';
+            canvasMargin2.style.left = this.#mouseCoordinates.currentX + 'px';
 
             this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
                 this.#canvasSelectRegion.height);
@@ -333,13 +333,141 @@ class ImageEditor {
     
             this.#selectRegion.startX = (this.#mouseCoordinates.currentX - rect.left) * this.#canvasSelectRegion.width / shownWidth;
             this.#selectRegion.startY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endX = (canvasMargin1.getBoundingClientRect().left - rect.left + 10) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endY = (canvasMargin2.getBoundingClientRect().top - rect.top + 10) * this.#canvasSelectRegion.height / shownHeight;
 
-            // console.clear();
-            // console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
-            // console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
-            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
-            // console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
-            // console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
+            console.clear();
+            console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
+            console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
+            console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
+            console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
+            console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
+
+            this.#drawSelectedRegion();
+        }
+    }
+
+    /**
+     * Resizes the top-right region based on the mouse movement.
+     * 
+     * @param {MouseEvent} eventObject 
+     * 
+     * @returns {void}
+     */
+    #dragTopRight(eventObject) {
+        const rect = this.#canvasSelectRegion.getBoundingClientRect();
+
+        const canvasMargin0 = document.getElementById("canvasMargin0");
+        const canvasMargin1 = document.getElementById("canvasMargin1");
+        const canvasMargin3 = document.getElementById("canvasMargin3");
+
+        this.#mouseCoordinates.currentX = eventObject.clientX;
+        this.#mouseCoordinates.currentY = eventObject.clientY;
+
+        if (this.#mouseCoordinates.currentX > rect.left && this.#mouseCoordinates.currentX < rect.right
+            && this.#mouseCoordinates.currentY > rect.top && this.#mouseCoordinates.currentY < rect.bottom) { 
+
+            canvasMargin1.style.top = this.#mouseCoordinates.currentY + 'px';
+            canvasMargin1.style.right = visualViewport.width - this.#mouseCoordinates.currentX + 'px';
+
+            canvasMargin0.style.top = this.#mouseCoordinates.currentY + 'px';
+
+            canvasMargin3.style.right = visualViewport.width - this.#mouseCoordinates.currentX + 'px';
+
+            this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
+                this.#canvasSelectRegion.height);
+
+            let shownWidth = rect.right - rect.left;
+            let shownHeight = rect.bottom - rect.top;
+    
+            this.#selectRegion.startX = (canvasMargin0.getBoundingClientRect().left - rect.left) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.startY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endX = (this.#mouseCoordinates.currentX - rect.left) * this.#canvasSelectRegion.width / shownWidth;
+            this.#selectRegion.endY = (canvasMargin3.getBoundingClientRect().top - rect.top + 10) * this.#canvasSelectRegion.height / shownHeight;
+
+            this.#drawSelectedRegion();
+        }
+    }
+
+    /**
+     * Resizes the bottom-left region based on the mouse movement.
+     * 
+     * @param {MouseEvent} eventObject 
+     * 
+     * @returns {void}
+     */
+    #dragBottomLeft(eventObject) {
+        const rect = this.#canvasSelectRegion.getBoundingClientRect();
+
+        const canvasMargin0 = document.getElementById("canvasMargin0");
+        const canvasMargin2 = document.getElementById("canvasMargin2");
+        const canvasMargin3 = document.getElementById("canvasMargin3");
+
+        this.#mouseCoordinates.currentX = eventObject.clientX;
+        this.#mouseCoordinates.currentY = eventObject.clientY;
+
+        if (this.#mouseCoordinates.currentX > rect.left && this.#mouseCoordinates.currentX < rect.right
+            && this.#mouseCoordinates.currentY > rect.top && this.#mouseCoordinates.currentY < rect.bottom) { 
+
+            canvasMargin0.style.left = this.#mouseCoordinates.currentX + 'px';
+            
+            canvasMargin2.style.left = this.#mouseCoordinates.currentX + 'px';
+            canvasMargin2.style.bottom = visualViewport.height - this.#mouseCoordinates.currentY + 'px';
+
+            canvasMargin3.style.bottom = visualViewport.height - this.#mouseCoordinates.currentY + 'px';
+
+            this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
+                this.#canvasSelectRegion.height);
+
+            let shownWidth = rect.right - rect.left;
+            let shownHeight = rect.bottom - rect.top;
+    
+            this.#selectRegion.startX = (this.#mouseCoordinates.currentX - rect.left) * this.#canvasSelectRegion.width / shownWidth;
+            this.#selectRegion.startY = (canvasMargin0.getBoundingClientRect().top - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endX = (canvasMargin3.getBoundingClientRect().left - rect.left + 10) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+
+            this.#drawSelectedRegion();
+        }
+    }
+
+    /**
+     * Resizes the bottom-right region based on the mouse movement.
+     * 
+     * @param {MouseEvent} eventObject 
+     * 
+     * @returns {void}
+     */
+    #dragBottomRight(eventObject) {
+        const rect = this.#canvasSelectRegion.getBoundingClientRect();
+
+        const canvasMargin1 = document.getElementById("canvasMargin1");
+        const canvasMargin2 = document.getElementById("canvasMargin2");
+        const canvasMargin3 = document.getElementById("canvasMargin3");
+
+        this.#mouseCoordinates.currentX = eventObject.clientX;
+        this.#mouseCoordinates.currentY = eventObject.clientY;
+
+        if (this.#mouseCoordinates.currentX > rect.left && this.#mouseCoordinates.currentX < rect.right
+            && this.#mouseCoordinates.currentY > rect.top && this.#mouseCoordinates.currentY < rect.bottom) { 
+
+            canvasMargin1.style.right = visualViewport.width - this.#mouseCoordinates.currentX + 'px';
+
+            canvasMargin2.style.bottom = visualViewport.height - this.#mouseCoordinates.currentY + 'px';
+
+            canvasMargin3.style.right = visualViewport.width - this.#mouseCoordinates.currentX + 'px';
+            canvasMargin3.style.bottom = visualViewport.height - this.#mouseCoordinates.currentY + 'px';
+
+            this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, 
+                this.#canvasSelectRegion.height);
+
+            let shownWidth = rect.right - rect.left;
+            let shownHeight = rect.bottom - rect.top;
+    
+            this.#selectRegion.startX = (canvasMargin2.getBoundingClientRect().left - rect.left) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.startY = (canvasMargin1.getBoundingClientRect().top - rect.top) * this.#canvasSelectRegion.height / shownHeight;
+            this.#selectRegion.endX = (this.#mouseCoordinates.currentX - rect.left) * this.#canvasSelectRegion.width / shownWidth;
+            this.#selectRegion.endY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
 
             this.#drawSelectedRegion();
         }
