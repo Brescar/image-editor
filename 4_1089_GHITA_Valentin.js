@@ -160,7 +160,7 @@ class ImageEditor {
     }
 
     /**
-     * Part of the #select() method. Sets the selected region to the whole image and draws it.
+     * Part of the #select() method. Sets the selected region to the whole image.
      * 
      * @returns {void}
      */
@@ -173,6 +173,11 @@ class ImageEditor {
         };
     }
 
+    /**
+     * Part of the #select() method. Draws the selected region.
+     * 
+     * @returns {void}
+     */
     #drawSelectedRegion() {
         const width = this.#selectRegion.endX - this.#selectRegion.startX;
         const height = this.#selectRegion.endY - this.#selectRegion.startY; 
@@ -278,34 +283,57 @@ class ImageEditor {
             case 0:
                 this.#dragTopLeft(eventObject);
                 break;
-            case 1:
-                this.#dragTopRight(eventObject);
-                break;
-            case 2:
-                this.#dragBottomLeft(eventObject);
-                break;
-            case 3:
-                this.#dragBottomRight(eventObject);
-                break;
-            default:
-                console.error("Corner not found");
-                break;
+            // case 1:
+            //     this.#dragTopRight(eventObject);
+            //     break;
+            // case 2:
+            //     this.#dragBottomLeft(eventObject);
+            //     break;
+            // case 3:
+            //     this.#dragBottomRight(eventObject);
+            //     break;
+            // default:
+            //     console.error("Corner not found");
+            //     break;
         }
     }
 
     /**
-     * Resizes the region based on the mouse movement.
+     * Resizes the top-left region based on the mouse movement.
      * 
      * @param {MouseEvent} eventObject 
      * 
      * @returns {void}
      */
     #dragTopLeft(eventObject) {
-        this.#selectRegion.startX += eventObject.clientX - this.#mouseCoordinates.currentX;
-        this.#selectRegion.startY += eventObject.clientY - this.#mouseCoordinates.currentY;
         this.#mouseCoordinates.currentX = eventObject.clientX;
         this.#mouseCoordinates.currentY = eventObject.clientY;
-        this.#drawSelectedRegion();
+
+        if (this.#mouseCoordinates.currentX > this.#mouseCoordinates.initialX &&
+            this.#mouseCoordinates.currentY > this.#mouseCoordinates.initialY) {
+
+            this.#canvasSelectRegionContext.clearRect(this.#selectRegion.startX, this.#selectRegion.startY, 
+                this.#selectRegion.endX - this.#selectRegion.startX, this.#selectRegion.endY - this.#selectRegion.startY);
+    
+            const rect = this.#canvasSelectRegion.getBoundingClientRect();
+
+            this.#selectRegion.startX += this.#mouseCoordinates.currentX - rect.left;
+            this.#selectRegion.startY += this.#mouseCoordinates.currentY - rect.top;
+
+            this.#drawSelectedRegion();
+
+            const canvasMargin0 = document.getElementById("canvasMargin0");
+            const canvasMargin1 = document.getElementById("canvasMargin1");
+            const canvasMargin2 = document.getElementById("canvasMargin2");
+            const canvasMargin3 = document.getElementById("canvasMargin3");
+
+            canvasMargin0.style.top = rect.top + this.#mouseCoordinates.currentY - rect.top;
+            canvasMargin0.style.left = rect.left + this.#mouseCoordinates.currentX - rect.left;
+
+            canvasMargin1.style.top = rect.top + this.#mouseCoordinates.currentY - rect.top;
+
+            canvasMargin2.style.left = rect.left + this.#mouseCoordinates.currentX - rect.left;
+        }
     }
 
     /**
