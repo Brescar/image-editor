@@ -142,6 +142,9 @@ class ImageEditor {
             case 'invert':
                 this.#invert();
                 break;
+            case 'delete':
+                this.#delete();
+                break;
             default:
                 console.error("Effect not found");
                 break;
@@ -775,6 +778,40 @@ class ImageEditor {
         }
 
         this.#selectRegion = null;
+    }
+
+    /**
+     * Deletes the selected region.
+     * 
+     * @returns {void}
+     */
+    #delete() {
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0,
+                this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i + 1] = data[i + 2] = 255;
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i + 1] = data[i + 2] = 255;
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
     }
 
     /**
