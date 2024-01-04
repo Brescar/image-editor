@@ -27,7 +27,7 @@ class ImageEditor {
     /**
      * @type {object}
      */
-    #selectRegion;
+    #selectRegion = null;
 
     /**
      * @type {HTMLCanvasElement}
@@ -65,7 +65,7 @@ class ImageEditor {
         this.#canvasVisibleContentContext = canvasVisibleContent.getContext("2d");
         
         this.#canvasOffScreen = document.createElement("canvas");
-        this.#canvasOffScreenContext = this.#canvasVisibleContent.getContext("2d");
+        this.#canvasOffScreenContext = this.#canvasOffScreen.getContext("2d");
 
         this.#canvasSelectRegion = document.createElement("canvas");
         this.#canvasSelectRegion.id = "canvasSelectRegion";
@@ -127,6 +127,21 @@ class ImageEditor {
             case 'deselect':
                 this.#deselect();
                 break;
+            case "grayscale":
+                this.#grayscale();
+                break;
+            case 'redonly':
+                this.#redOnly();
+                break;
+            case "sepia":
+                this.#sepia();
+                break;
+            case "threshold":
+                this.#threshold();
+                break;
+            case 'invert':
+                this.#invert();
+                break;
             default:
                 console.error("Effect not found");
                 break;
@@ -139,7 +154,275 @@ class ImageEditor {
      * @returns {void}
      */
     #normal() {
-        this.#canvasVisibleContentContext.drawImage(this.#canvasOffScreen, 0, 0);
+        if (this.#selectRegion == null) {
+            this.#canvasVisibleContentContext.drawImage(this.#canvasOffScreen, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
+            // console.log("END X : END Y\n" + this.#selectRegion.endX + "   " + this.#selectRegion.endY);
+            // console.log("WIDTH : HEIGHT\n" + width + "   " + height);
+            // console.log("X : Y\n" + x + "   " + y);
+            
+            this.#canvasVisibleContentContext.drawImage(this.#canvasOffScreen, x, y, width, height, x, y, width, height);
+        }
+    }
+
+    /**
+     * Applies a grayscale filter on the current image.
+     *
+     * @returns {void}
+     */
+    #grayscale(){
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0, this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+            const data = imageData.data;
+            for(let i = 0; i<data.length; i+=4){
+                data[i] = data[i+1] = data[i+2] = Math.round((data[i] + data[i+1] + data[i+2])/3);
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
+            // console.log("END X : END Y\n" + this.#selectRegion.endX + "   " + this.#selectRegion.endY);
+            // console.log("WIDTH : HEIGHT\n" + width + "   " + height);
+            // console.log("X : Y\n" + x + "   " + y);
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+            const data = imageData.data;
+            for(let i = 0; i<data.length; i+=4){
+                data[i] = data[i+1] = data[i+2] = Math.round((data[i] + data[i+1] + data[i+2])/3);
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
+    }
+
+    /**
+     * Applies a red-only filter on the current image.
+     *
+     * @returns {void}
+     */
+    #redOnly() {
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0,
+                this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i + 1] = data[i + 2] = 0;
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i + 1] = data[i + 2] = 0;
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
+    }
+
+    /**
+     * Applies the sepia effect to the current image.
+     *
+     * @returns {void}
+     */
+    #sepia() {
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0,
+                this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const red = data[i];
+                const green = data[i + 1];
+                const blue = data[i + 2];
+
+                // r'
+                const newR = Math.round((red * 0.393) + (green * 0.769) + (blue * 0.189));
+                // g'
+                const newG = Math.round((red * 0.349) + (green * 0.686) + (blue * 0.168));
+                // b'
+                const newB = Math.round((red * 0.272) + (green * 0.534) + (blue * 0.131));
+
+                if (newR > 255) {
+                    data[i] = 255;
+                } else {
+                    data[i] = newR;
+                }
+
+                if (newG > 255) {
+                    data[i + 1] = 255;
+                } else {
+                    data[i + 1] = newG;
+                }
+
+                if (newB > 255) {
+                    data[i + 2] = 255;
+                } else {
+                    data[i + 2] = newB;
+                }
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const red = data[i];
+                const green = data[i + 1];
+                const blue = data[i + 2];
+
+                // r'
+                const newR = Math.round((red * 0.393) + (green * 0.769) + (blue * 0.189));
+                // g'
+                const newG = Math.round((red * 0.349) + (green * 0.686) + (blue * 0.168));
+                // b'
+                const newB = Math.round((red * 0.272) + (green * 0.534) + (blue * 0.131));
+
+                if (newR > 255) {
+                    data[i] = 255;
+                } else {
+                    data[i] = newR;
+                }
+
+                if (newG > 255) {
+                    data[i + 1] = 255;
+                } else {
+                    data[i + 1] = newG;
+                }
+
+                if (newB > 255) {
+                    data[i + 2] = 255;
+                } else {
+                    data[i + 2] = newB;
+                }
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
+    }
+
+    /**
+     * Applies the threshold effect to the current image.
+     *
+     * @returns {void}
+     */
+    #threshold() {
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0,
+                this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const red = data[i];
+                const green = data[i + 1];
+                const blue = data[i + 2];
+
+                const average = Math.round(0.2126 * red + 0.7152 * green + 0.0722 * blue);
+
+                const level = 128;
+
+                if (average > level) {
+                    data[i] = data[i + 1] = data[i + 2] = 255;
+                } else {
+                    data[i] = data[i + 1] = data[i + 2] = 0;
+                }
+            }
+
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+    
+            const data = imageData.data;
+    
+            for (let i = 0; i < data.length; i += 4) {
+                const red = data[i];
+                const green = data[i + 1];
+                const blue = data[i + 2];
+    
+                const average = Math.round(0.2126 * red + 0.7152 * green + 0.0722 * blue);
+    
+                const level = 128;
+    
+                if (average > level) {
+                    data[i] = data[i + 1] = data[i + 2] = 255;
+                } else {
+                    data[i] = data[i + 1] = data[i + 2] = 0;
+                }
+            }
+    
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
+    }
+
+    /**
+     * Applies the invert effect to the current image.
+     *
+     * @returns {void}
+     */
+    #invert(){
+        if (this.#selectRegion == null) {
+            const imageData = this.#canvasOffScreenContext.getImageData(0, 0, this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+            const data = imageData.data;
+            for(let i = 0; i<data.length; i+=4){
+                data[i] = 255 - data[i]
+                data[i+1] = 255 - data[i+1]
+                data[i+2] = 255 - data[i+2]
+            }
+            this.#canvasVisibleContentContext.putImageData(imageData, 0, 0);
+        }
+        else {
+            const width = this.#selectRegion.endX - this.#selectRegion.startX;
+            const height = this.#selectRegion.endY - this.#selectRegion.startY;
+            const x = this.#selectRegion.startX;
+            const y = this.#selectRegion.startY;
+
+            const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
+            const data = imageData.data;
+            for(let i = 0; i<data.length; i+=4){
+                data[i] = 255 - data[i]
+                data[i+1] = 255 - data[i+1]
+                data[i+2] = 255 - data[i+2]
+            }
+            this.#canvasVisibleContentContext.putImageData(imageData, x, y);
+        }
     }
 
     /**
@@ -336,12 +619,12 @@ class ImageEditor {
             this.#selectRegion.endX = (canvasMargin1.getBoundingClientRect().left - rect.left + 10) * this.#canvasSelectRegion.height / shownHeight;
             this.#selectRegion.endY = (canvasMargin2.getBoundingClientRect().top - rect.top + 10) * this.#canvasSelectRegion.height / shownHeight;
 
-            console.clear();
-            console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
-            console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
-            console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
-            console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
-            console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
+            // console.clear();
+            // console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
+            // console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
+            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
+            // console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
+            // console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
 
             this.#drawSelectedRegion();
         }
@@ -490,6 +773,8 @@ class ImageEditor {
         for (let i=0; i<this.#marginsSelection.length; i++) {
             document.body.removeChild(this.#marginsSelection[i].canvas);
         }
+
+        this.#selectRegion = null;
     }
 
     /**
@@ -573,14 +858,20 @@ class ImageEditor {
         });
 
         window.addEventListener('resize', function() {
-            for (let i=0; i<imageEditor.#marginsSelection.length; i++) {
-                document.body.removeChild(imageEditor.#marginsSelection[i].canvas);
+            if (imageEditor.#selectRegion != null) {
+                for (let i=0; i<imageEditor.#marginsSelection.length; i++) {
+                    document.body.removeChild(imageEditor.#marginsSelection[i].canvas);
+                }
+                imageEditor.#createMarginsForResizing();
             }
-            imageEditor.#createMarginsForResizing();
         });
 
         document.addEventListener('mouseup', function () {
             imageEditor.#isDragging = false;
         });
+
+        // document.addEventListener('click', function (eventObject) {
+        //     console.log("MOUSE COORDINATES X : Y\n" + eventObject.clientX + "   " + eventObject.clientY);
+        // });
     }
 }

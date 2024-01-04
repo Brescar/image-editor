@@ -9,7 +9,7 @@
     height: auto; 
 }
 
-#divButtons{
+#divButtons {
     position: fixed;
     bottom: 10px;
     left: 50%;
@@ -18,10 +18,19 @@
     padding: 10px;
 }
 
-#divFileBrowser{
+#divButtonsFunctions {
     position: fixed;
     top: 10px;
-    left: 50%;
+    right: 20%;
+    transform: translateX(-50%);
+    background-color: rgba(200,200,200,0.8);
+    padding: 10px;
+}
+
+#divFileBrowser {
+    position: fixed;
+    top: 10px;
+    left: 20%;
     transform: translateX(-50%);
     background-color: rgba(200,200,200,0.8);
     padding: 10px;
