@@ -142,6 +142,9 @@ class ImageEditor {
             case 'invert':
                 this.#invert();
                 break;
+            case 'crop':
+                this.#crop();
+                break;
             case 'delete':
                 this.#delete();
                 break;
@@ -778,6 +781,60 @@ class ImageEditor {
         }
 
         this.#selectRegion = null;
+    }
+
+    /**
+     * Crops the selected region.
+     * 
+     * @returns {void}
+     */
+    #crop() {
+        if (this.#selectRegion == null)
+            return;
+        
+        const width = this.#selectRegion.endX - this.#selectRegion.startX;
+        const height = this.#selectRegion.endY - this.#selectRegion.startY;
+        const x = this.#selectRegion.startX;
+        const y = this.#selectRegion.startY;
+
+        if (width <= 0 || height <= 0) {
+            console.error('Invalid selection region. Width and height must be greater than 0.');
+            return;
+        }
+
+        const imageData = this.#canvasVisibleContentContext.getImageData(x, y, width, height);
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+    
+        context.putImageData(imageData, 0, 0);
+
+        this.#canvasVisibleContentContext.clearRect(0, 0, this.#canvasVisibleContent.width, this.#canvasVisibleContent.height);
+        this.#canvasOffScreenContext.clearRect(0, 0, this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+        this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, this.#canvasSelectRegion.height);
+
+        this.#canvasVisibleContent.width = canvas.width;
+        this.#canvasVisibleContent.height = canvas.height;
+        this.#canvasOffScreen.width = canvas.width;
+        this.#canvasOffScreen.height = canvas.height;
+        this.#canvasSelectRegion.width = canvas.width;
+        this.#canvasSelectRegion.height = canvas.height;
+
+        this.#canvasOffScreenContext.drawImage(canvas, 0, 0);
+        this.#canvasVisibleContentContext.drawImage(canvas, 0, 0);
+
+        if (this.#selectRegion != null) {
+            for (let i=0; i<this.#marginsSelection.length; i++) {
+                document.body.removeChild(this.#marginsSelection[i].canvas);
+            }
+            this.#selectRegion = null;
+        }
+
+        this.#select();
+        this.#deselect();
     }
 
     /**
