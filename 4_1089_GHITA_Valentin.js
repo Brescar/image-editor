@@ -972,13 +972,14 @@ class ImageEditor {
      * @returns {void}
      */
     #addingText() {
-        const text = document.getElementById('fontFamily').value;
+        const text = document.getElementById('inputText').value;
+        const font = document.getElementById('fontFamily').value;
         const size = parseInt(document.getElementById('fontSize').value);
         const color = document.getElementById('fontColor').value;
         const x = parseInt(document.getElementById('positionX').value);
         const y = parseInt(document.getElementById('positionY').value) + size;
 
-        this.#canvasVisibleContentContext.font = `${size}px Arial`;
+        this.#canvasVisibleContentContext.font = `${size}px ${font}`;
         this.#canvasVisibleContentContext.fillStyle = color;
         this.#canvasVisibleContentContext.fillText(text, x, y);
     }
