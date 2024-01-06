@@ -27,8 +27,24 @@
     <div id="divButtonsFunctions">
         <button data-effect="select" id="selectButton">Select</button>
         <button data-effect="crop">Crop</button>
+        <button data-effect="resize" id="resizeButton">Resize</button>
         <button data-effect="delete">Delete</button>
         <button id="buttonSave">Save</button>
+    </div>
+
+    <div id="divResize", style="visibility: hidden;">
+        <div id="divWidth">
+            <label for="inputWidth">New width: </label>
+            <input id="inputWidth" type="number" min="1" max="4096" value="100">
+        </div>
+        <div id="divHeight">
+            <label for="inputHeight">New height: </label>
+            <input id="inputHeight" type="number" min="1" max="2160" value="100">
+        </div>
+        <div id="divYesNo">
+            <button id="buttonApply">Apply</button>
+            <button id="buttonCancel">Cancel</button>
+        </div>
     </div>
 
     <script src="4_1089_GHITA_Valentin.js"></script>

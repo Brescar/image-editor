@@ -55,6 +55,11 @@ class ImageEditor {
     #isDragging = false;
 
     /**
+     * @type {boolean}
+     */
+    #hasImage = false;
+
+    /**
      * Returns a new ImageEditor object
      * @param {HTMLCanvasElement} canvasVisibleContent 
      * 
@@ -90,6 +95,12 @@ class ImageEditor {
         this.#canvasSelectRegion.height = image.naturalHeight;
 
         this.#canvasOffScreenContext.drawImage(image, 0, 0);
+
+        const inputWidth = document.getElementById('inputWidth');
+        const inputHeight = document.getElementById('inputHeight');
+        inputWidth.value = image.naturalWidth;
+        inputHeight.value = image.naturalHeight;
+        this.#hasImage = true;
 
         this.#effect = "normal";
         this.#drawImage();
@@ -145,6 +156,12 @@ class ImageEditor {
             case 'crop':
                 this.#crop();
                 break;
+            case 'resize':
+                this.#resize();
+                break;
+            case 're-resize':
+                this.#resize();
+                break;
             case 'delete':
                 this.#delete();
                 break;
@@ -168,11 +185,6 @@ class ImageEditor {
             const height = this.#selectRegion.endY - this.#selectRegion.startY;
             const x = this.#selectRegion.startX;
             const y = this.#selectRegion.startY;
-
-            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
-            // console.log("END X : END Y\n" + this.#selectRegion.endX + "   " + this.#selectRegion.endY);
-            // console.log("WIDTH : HEIGHT\n" + width + "   " + height);
-            // console.log("X : Y\n" + x + "   " + y);
             
             this.#canvasVisibleContentContext.drawImage(this.#canvasOffScreen, x, y, width, height, x, y, width, height);
         }
@@ -198,11 +210,6 @@ class ImageEditor {
             const height = this.#selectRegion.endY - this.#selectRegion.startY;
             const x = this.#selectRegion.startX;
             const y = this.#selectRegion.startY;
-
-            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
-            // console.log("END X : END Y\n" + this.#selectRegion.endX + "   " + this.#selectRegion.endY);
-            // console.log("WIDTH : HEIGHT\n" + width + "   " + height);
-            // console.log("X : Y\n" + x + "   " + y);
 
             const imageData = this.#canvasOffScreenContext.getImageData(x, y, width, height);
             const data = imageData.data;
@@ -264,12 +271,11 @@ class ImageEditor {
                 const red = data[i];
                 const green = data[i + 1];
                 const blue = data[i + 2];
-
-                // r'
+                
                 const newR = Math.round((red * 0.393) + (green * 0.769) + (blue * 0.189));
-                // g'
+
                 const newG = Math.round((red * 0.349) + (green * 0.686) + (blue * 0.168));
-                // b'
+
                 const newB = Math.round((red * 0.272) + (green * 0.534) + (blue * 0.131));
 
                 if (newR > 255) {
@@ -308,11 +314,11 @@ class ImageEditor {
                 const green = data[i + 1];
                 const blue = data[i + 2];
 
-                // r'
+
                 const newR = Math.round((red * 0.393) + (green * 0.769) + (blue * 0.189));
-                // g'
+
                 const newG = Math.round((red * 0.349) + (green * 0.686) + (blue * 0.168));
-                // b'
+                
                 const newB = Math.round((red * 0.272) + (green * 0.534) + (blue * 0.131));
 
                 if (newR > 255) {
@@ -439,6 +445,9 @@ class ImageEditor {
      * @returns {void}
      */
     #select() {
+        if (!this.#hasImage) 
+            return;
+
         const selectButton = document.getElementById('selectButton');
         selectButton.innerHTML = 'Deselect';
         selectButton.setAttribute("data-effect", "deselect");
@@ -624,13 +633,6 @@ class ImageEditor {
             this.#selectRegion.startY = (this.#mouseCoordinates.currentY - rect.top) * this.#canvasSelectRegion.height / shownHeight;
             this.#selectRegion.endX = (canvasMargin1.getBoundingClientRect().left - rect.left + 10) * this.#canvasSelectRegion.height / shownHeight;
             this.#selectRegion.endY = (canvasMargin2.getBoundingClientRect().top - rect.top + 10) * this.#canvasSelectRegion.height / shownHeight;
-
-            // console.clear();
-            // console.log("MOUSE X : MOUSE Y\n" + this.#mouseCoordinates.currentX + "   " + this.#mouseCoordinates.currentY)
-            // console.log("RECT LEFT : RECT TOP\n" + rect.left + "   " + rect.top);
-            // console.log("START X : START Y\n" + this.#selectRegion.startX + "   " + this.#selectRegion.startY);
-            // console.log("CANVASMARGIN0 RECT LEFT : CANVASMARGIN0 RECT TOP\n" + canvasMargin0.getBoundingClientRect().left + "   " + canvasMargin0.getBoundingClientRect().top);
-            // console.log("CANVAS-SELECT-REGION WIDTH : CANVAS-SELECT-REGION HEIGHT\n" + this.#canvasSelectRegion.width + "   " + this.#canvasSelectRegion.height);
 
             this.#drawSelectedRegion();
         }
@@ -833,8 +835,107 @@ class ImageEditor {
             this.#selectRegion = null;
         }
 
+        const inputWidth = document.getElementById('inputWidth');
+        const inputHeight = document.getElementById('inputHeight');
+        inputWidth.value = this.#canvasVisibleContent.width;
+        inputHeight.value = this.#canvasVisibleContent.height;
+        this.#hasImage = true;
+
         this.#select();
         this.#deselect();
+    }
+
+    /**
+     * Toggles resize form's visibility.
+     * 
+     * 
+     * 
+     * @returns {void}
+     */
+    #resize() {
+        if (!this.#hasImage) 
+            return;
+
+        this.#toggleResizeFormVisibility();
+    }
+
+    /**
+     * Resizes the current image based on user input, while maintaining aspect ratio.
+     * 
+     * @returns {void}
+     */
+    #resizing() {
+        const inputWidth = document.getElementById('inputWidth');
+        let width = parseFloat(inputWidth.value);
+        const inputHeight = document.getElementById('inputHeight');
+        let height = parseFloat(inputHeight.value);
+        const buttonOK = document.getElementById('buttonApply');
+        const buttonCancel = document.getElementById('buttonCancel');
+        let minW = parseFloat(inputWidth.getAttribute('min'));
+        let maxW = parseFloat(inputWidth.getAttribute('max'));
+        let minH = parseFloat(inputHeight.getAttribute('min'));
+        let maxH = parseFloat(inputHeight.getAttribute('max'));
+
+        if (width < minW)
+            inputWidth.value = minW;
+        else if (width > maxW)
+            inputWidth.value = maxW;
+
+        if (height < minH)
+            inputHeight.value = minH;
+        else if (height > maxH)
+            inputHeight.value = maxH;
+
+        const imageData = this.#canvasVisibleContentContext.getImageData(0, 0, this.#canvasVisibleContent.width, this.#canvasVisibleContent.height);
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = parseFloat(inputWidth.value);
+        canvas.height = parseFloat(inputHeight.value);
+    
+        context.drawImage(this.#canvasVisibleContent, 0, 0, canvas.width, canvas.height);
+
+        this.#canvasVisibleContentContext.clearRect(0, 0, this.#canvasVisibleContent.width, this.#canvasVisibleContent.height);
+        this.#canvasOffScreenContext.clearRect(0, 0, this.#canvasOffScreen.width, this.#canvasOffScreen.height);
+        this.#canvasSelectRegionContext.clearRect(0, 0, this.#canvasSelectRegion.width, this.#canvasSelectRegion.height);
+
+        this.#canvasVisibleContent.width = canvas.width;
+        this.#canvasVisibleContent.height = canvas.height;
+        this.#canvasOffScreen.width = canvas.width;
+        this.#canvasOffScreen.height = canvas.height;
+        this.#canvasSelectRegion.width = canvas.width;
+        this.#canvasSelectRegion.height = canvas.height;
+
+        this.#canvasOffScreenContext.drawImage(canvas, 0, 0);
+        this.#canvasVisibleContentContext.drawImage(canvas, 0, 0);
+
+        if (this.#selectRegion != null) {
+            for (let i=0; i<this.#marginsSelection.length; i++) {
+                document.body.removeChild(this.#marginsSelection[i].canvas);
+            }
+            this.#selectRegion = null;
+        }
+        
+    }
+
+    /**
+     * Calculates the ratio between the current image's width and height.
+     * 
+     * @returns {number}
+     */
+    #imageWidthHeightRatio() {
+        return this.#canvasVisibleContent.width / this.#canvasVisibleContent.height;
+    }
+
+    /**
+     * Toggles resize form's visibility.
+     * 
+     * @returns {HTMLDivElement}
+     */
+    #toggleResizeFormVisibility() {
+        const div = document.getElementById('divResize');
+        div.style.visibility = div.style.visibility === 'visible' ? 'hidden' : 'visible';
     }
 
     /**
@@ -964,8 +1065,44 @@ class ImageEditor {
             imageEditor.#isDragging = false;
         });
 
-        // document.addEventListener('click', function (eventObject) {
-        //     console.log("MOUSE COORDINATES X : Y\n" + eventObject.clientX + "   " + eventObject.clientY);
-        // });
+        const resizeButton = document.getElementById('resizeButton');
+        let effect;
+        const buttonOK = document.getElementById('buttonApply');
+        const buttonCancel = document.getElementById('buttonCancel');
+
+        buttonOK.addEventListener('mousedown', () => {
+            effect = resizeButton.dataset.effect;
+            if (effect === "resize") {
+                resizeButton.setAttribute("data-effect", "re-resize");
+            }
+            else {
+                resizeButton.setAttribute("data-effect", "resize");
+            }
+        });
+        buttonOK.addEventListener('mouseup', () => {
+            imageEditor.#resizing();
+            imageEditor.#toggleResizeFormVisibility();
+        }); 
+
+        buttonCancel.addEventListener('mousedown', () => {
+            effect = resizeButton.dataset.effect;
+            if (effect === "resize") {
+                resizeButton.setAttribute("data-effect", "re-resize");
+            }
+            else {
+                resizeButton.setAttribute("data-effect", "resize");
+            }
+        }); 
+        buttonCancel.addEventListener('mouseup', () => {
+            imageEditor.#toggleResizeFormVisibility();
+        });
+
+        inputWidth.addEventListener('input', () => {
+            inputHeight.value = inputWidth.value / imageEditor.#imageWidthHeightRatio();
+        });
+
+        inputHeight.addEventListener('input', () => {
+            inputWidth.value = inputHeight.value * imageEditor.#imageWidthHeightRatio();
+        });
     }
 }
