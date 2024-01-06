@@ -36,7 +36,7 @@
     padding: 10px;
 }
 
-#divResize {
+#divResize, #divText {
     position: fixed; 
     top: 50%; 
     left: 50%; 
@@ -48,7 +48,7 @@
     border: 2px solid black;
 }
 
-#divWidth, #divHeight, #divYesNo {
+#divWidth, #divHeight, #divYesNo, #divTextYesNo {
     margin: 10px;
 }
 
@@ -56,13 +56,13 @@
     background-color: rgba(180,180,180,1);
 }
 
-#buttonApply {
+#buttonApply, #buttonTextApply {
     background-color: rgb(36, 137, 36);
     margin-left: 30px;
     margin-right: 30px;
 }
 
-#buttonCancel {
+#buttonCancel, #buttonTextCancel {
     background-color: rgb(181, 30, 30);
     margin-left: 30px;
     margin-right: 30px;

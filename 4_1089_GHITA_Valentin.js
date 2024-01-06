@@ -102,6 +102,11 @@ class ImageEditor {
         inputHeight.value = image.naturalHeight;
         this.#hasImage = true;
 
+        const positionX = document.getElementById('positionX');
+        const positionY = document.getElementById('positionY');
+        positionX.setAttribute('max', image.naturalWidth);
+        positionY.setAttribute('max', image.naturalHeight);
+
         this.#effect = "normal";
         this.#drawImage();
     }
@@ -161,6 +166,12 @@ class ImageEditor {
                 break;
             case 're-resize':
                 this.#resize();
+                break;
+            case 'addtext':
+                this.#addText();
+                break;
+            case 'addedtext':
+                this.#addText();
                 break;
             case 'delete':
                 this.#delete();
@@ -841,6 +852,11 @@ class ImageEditor {
         inputHeight.value = this.#canvasVisibleContent.height;
         this.#hasImage = true;
 
+        const positionX = document.getElementById('positionX');
+        const positionY = document.getElementById('positionY');
+        positionX.setAttribute('max', this.#canvasVisibleContent.width);
+        positionY.setAttribute('max', this.#canvasVisibleContent.height);
+
         this.#select();
         this.#deselect();
     }
@@ -931,10 +947,49 @@ class ImageEditor {
     /**
      * Toggles resize form's visibility.
      * 
-     * @returns {HTMLDivElement}
+     * @returns {void}
      */
     #toggleResizeFormVisibility() {
         const div = document.getElementById('divResize');
+        div.style.visibility = div.style.visibility === 'visible' ? 'hidden' : 'visible';
+    }
+
+    /**
+     * Toggles text form's visibility.
+     * 
+     * @returns {void}
+     */
+    #addText() {
+        if (!this.#hasImage) 
+            return;
+
+        this.#toggleTextFormVisibility();
+    }
+
+    /**
+     * Adds text to the current image based on user's choices.
+     * 
+     * @returns {void}
+     */
+    #addingText() {
+        const text = document.getElementById('fontFamily').value;
+        const size = parseInt(document.getElementById('fontSize').value);
+        const color = document.getElementById('fontColor').value;
+        const x = parseInt(document.getElementById('positionX').value);
+        const y = parseInt(document.getElementById('positionY').value) + size;
+
+        this.#canvasVisibleContentContext.font = `${size}px Arial`;
+        this.#canvasVisibleContentContext.fillStyle = color;
+        this.#canvasVisibleContentContext.fillText(text, x, y);
+    }
+
+    /**
+     * Toggles text form's visibility.
+     * 
+     * @returns {void}
+     */
+    #toggleTextFormVisibility() {
+        const div = document.getElementById('divText');
         div.style.visibility = div.style.visibility === 'visible' ? 'hidden' : 'visible';
     }
 
@@ -1103,6 +1158,41 @@ class ImageEditor {
 
         inputHeight.addEventListener('input', () => {
             inputWidth.value = inputHeight.value * imageEditor.#imageWidthHeightRatio();
+        });
+
+        const textButton = document.getElementById('textButton');
+        let effectText;
+        const buttonCancelText = document.getElementById('buttonTextCancel');
+
+        buttonCancelText.addEventListener('mousedown', () => {
+            effectText = textButton.dataset.effect;
+            if (effectText === "addtext") {
+                textButton.setAttribute("data-effect", "addedtext");
+            }
+            else {
+                textButton.setAttribute("data-effect", "addtext");
+            }
+        });
+
+        buttonCancelText.addEventListener('mouseup', () => {
+            imageEditor.#toggleTextFormVisibility();
+        });
+
+        const textForm = document.getElementById('divText');
+        
+        textForm.addEventListener('submit', (eventObject) => {
+            eventObject.preventDefault();
+
+            effectText = textButton.dataset.effect;
+            if (effectText === "addtext") {
+                textButton.setAttribute("data-effect", "addedtext");
+            }
+            else {
+                textButton.setAttribute("data-effect", "addtext");
+            }
+
+            imageEditor.#addingText();
+            imageEditor.#toggleTextFormVisibility();
         });
     }
 }
