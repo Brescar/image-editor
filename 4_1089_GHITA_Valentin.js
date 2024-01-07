@@ -60,6 +60,26 @@ class ImageEditor {
     #hasImage = false;
 
     /**
+     * @type {HTMLCanvasElement}
+     */
+    #canvasHistogram;
+
+    /**
+     * @type {CanvasRenderingContext2D}
+     */
+    #canvasHistogramContext;
+
+    /**
+     * @type {boolean}
+     */
+    #visibleHistogram = false;
+
+    /**
+     * @type {number}
+     */
+    #debounceTimer = null;
+
+    /**
      * Returns a new ImageEditor object
      * @param {HTMLCanvasElement} canvasVisibleContent 
      * 
@@ -76,6 +96,9 @@ class ImageEditor {
         this.#canvasSelectRegion.id = "canvasSelectRegion";
         document.body.appendChild(this.#canvasSelectRegion);
         this.#canvasSelectRegionContext = this.#canvasSelectRegion.getContext("2d");
+
+        this.#canvasHistogram = document.getElementById("canvasHistogram");
+        this.#canvasHistogramContext = this.#canvasHistogram.getContext("2d");
     }
 
     /**
@@ -176,10 +199,20 @@ class ImageEditor {
             case 'delete':
                 this.#delete();
                 break;
+            case 'showhistogram':
+                this.#showHistogram();
+                break;
+            case 'hidehistogram':
+                this.#hideHistogram();
+                break;
             default:
                 console.error("Effect not found");
                 break;
         }
+
+        //normally, here this.#drawHistogram(); would be called in order to
+        //updated the histogram automatically if it is showing,
+        //but the process is too slow and makes the webpage lag
     }
 
     /**
@@ -496,6 +529,9 @@ class ImageEditor {
 
         this.#canvasSelectRegionContext.strokeRect(this.#selectRegion.startX + 5, 
             this.#selectRegion.startY + 5, width - 10, height - 10);
+
+        //here, normally, drawHistogram would be called in order to keep 
+        //the histogram updated, but it is too slow and makes the webpage lag
     }
 
     /**
@@ -1038,6 +1074,112 @@ class ImageEditor {
         link.download = "image.jpeg";
         link.href = this.#canvasVisibleContent.toDataURL("image/jpeg");
         link.click();
+    }
+
+    /**
+     * Sets the visibleHistogram property to true and .
+     */
+    #showHistogram() {
+        this.#visibleHistogram = true;
+        this.#toggleHistogramVisibility();
+
+        const histogramButton = document.getElementById('histogramButton');
+        histogramButton.innerHTML = 'Hide Histogram';
+        histogramButton.setAttribute("data-effect", "hidehistogram");
+        
+        this.#drawHistogram();
+    }
+
+    #hideHistogram() {
+        this.#visibleHistogram = false;
+        this.#toggleHistogramVisibility();
+
+        const histogramButton = document.getElementById('histogramButton');
+        histogramButton.innerHTML = 'Show Histogram';
+        histogramButton.setAttribute("data-effect", "showhistogram");
+    }
+
+    /**
+     * Toggles histogram's visibility.
+     */
+    #toggleHistogramVisibility() {
+        const canvas = document.getElementById('canvasHistogram');
+        canvas.style.visibility = canvas.style.visibility === 'visible' ? 'hidden' : 'visible';
+    }
+
+    /**
+     * Draws the histogram of the selection of the image.
+     * 
+     * @returns {void}
+     */
+    #drawHistogram() {
+        if (!this.#showHistogram) {
+            return;
+        }
+        const values = [];
+        for (let i = 0; i < 256; i++) {
+            values.push(0);
+        }
+
+        let imageWidth;
+        let imageHeight;
+        if (this.#selectRegion == null) {
+            imageWidth = this.#canvasVisibleContent.width;
+            imageHeight = this.#canvasVisibleContent.height;
+        }
+        else {
+            imageWidth = this.#selectRegion.endX - this.#selectRegion.startX;
+            imageHeight = this.#selectRegion.endY - this.#selectRegion.startY;
+        }
+
+        const imageData = this.#canvasVisibleContentContext.getImageData(0, 0, imageWidth, imageHeight);
+        const data = imageData.data;
+
+        for (let y = 0; y < imageHeight; y++) {
+            for (let x = 0; x < imageWidth; x++) {
+                
+                const offset = ((imageWidth * y) + x) * 4
+
+                const red = data[offset];
+                const green = data[offset + 1];
+                const blue = data[offset + 2];
+
+                const val = Math.round((red + green + blue)/3);
+                values[val]++;
+            }
+        }
+
+        let histogramWidth = this.#canvasHistogram.width;
+        let histogramHeight = this.#canvasHistogram.height;
+
+        this.#canvasHistogramContext.clearRect(0, 0, histogramWidth, histogramHeight);
+        
+        this.#canvasHistogramContext.save();
+
+        let n = values.length;      
+        
+        this.#canvasHistogramContext.rotate(Math.PI);
+
+        this.#canvasHistogramContext.translate(0, -histogramHeight);
+        
+        let f = histogramHeight / Math.max(...values);
+        
+        this.#canvasHistogramContext.scale(-1, f);
+                    
+        this.#canvasHistogramContext.fillStyle = 'rgba(255,0,0,0.8)';
+        
+        let w = histogramWidth / n;
+        for (let i = 0; i < n; i++) {
+            
+            let rectWidth = w;
+            let rectHeight = values[i];
+            let rectX = i * w;
+            let rectY = 0;
+
+            this.#canvasHistogramContext.fillRect(rectX, rectY, rectWidth, rectHeight);
+        }
+
+        this.#canvasHistogramContext.restore();
     }
 
     /**

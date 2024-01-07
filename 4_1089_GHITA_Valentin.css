@@ -67,3 +67,11 @@
     margin-left: 30px;
     margin-right: 30px;
 }
+
+#canvasHistogram {
+    position: fixed;
+    top: 10%;
+    right: 0;
+    max-width: 15%;
+    border-style: dotted;
+}

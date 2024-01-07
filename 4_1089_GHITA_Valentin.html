@@ -29,6 +29,7 @@
         <button data-effect="crop">Crop</button>
         <button data-effect="resize" id="resizeButton">Resize</button>
         <button data-effect="addtext" id="textButton">Add Text</button>
+        <button data-effect="showhistogram" id="histogramButton">Show Histogram</button>
         <button data-effect="delete">Delete</button>
         <button id="buttonSave">Save</button>
     </div>
@@ -90,6 +91,10 @@
             </div>
         </fieldset>
     </form>
+
+    <canvas id="canvasHistogram", style="visibility: hidden;">
+        Your browser does not support the canvas element.
+    </canvas>
 
     <script src="4_1089_GHITA_Valentin.js"></script>
     <script>
